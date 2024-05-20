@@ -32,3 +32,8 @@ elm_library(
 
     native.register_toolchains("@com_github_edschouten_rules_elm//elm/toolchain:linux")
     native.register_toolchains("@com_github_edschouten_rules_elm//elm/toolchain:mac")
+
+elm_toolchain_extension = module_extension(
+    implementation = elm_register_toolchains,
+    doc = "Downloads the required binaries for the elm rules",
+)
