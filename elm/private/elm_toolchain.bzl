@@ -22,7 +22,7 @@ def elm_toolchain(name, exec_compatible_with):
 
     native.toolchain(
         name = name,
-        toolchain_type = "@com_github_edschouten_rules_elm//elm:toolchain",
+        toolchain_type = Label("//elm:toolchain"),
         exec_compatible_with = exec_compatible_with,
         toolchain = ":%s_info" % name,
     )

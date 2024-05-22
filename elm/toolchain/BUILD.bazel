@@ -1,4 +1,4 @@
-load("@com_github_edschouten_rules_elm//elm/private:elm_toolchain.bzl", "elm_toolchain")
+load("//elm/private:elm_toolchain.bzl", "elm_toolchain")
 
 elm_toolchain(
     name = "linux",
@@ -12,7 +12,7 @@ elm_toolchain(
     name = "mac",
     exec_compatible_with = [
         "@platforms//os:osx",
-        "@platforms//cpu:x86_64",
+        # "@platforms//cpu:x86_64", Let Rosetta handle it. 0.19.0 was built in 2018, pre-ARM macOS
     ],
 )
 

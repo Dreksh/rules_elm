@@ -1,6 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive = "http_archive")
 
-def elm_register_toolchains():
+def _fetch_compiler_archives(module_ctx):
     _http_archive(
         name = "com_github_elm_compiler_linux",
         build_file_content = """exports_files(["elm"])""",
@@ -17,7 +17,7 @@ def elm_register_toolchains():
 
     _http_archive(
         name = "com_github_rtfeldman_node_test_runner",
-        build_file_content = """load("@com_github_edschouten_rules_elm//elm:def.bzl", "elm_library")
+        build_file_content = """load("@rules_elm//elm:def.bzl", "elm_library")
 
 elm_library(
     name = "node_test_runner",
@@ -30,10 +30,12 @@ elm_library(
         urls = ["https://github.com/rtfeldman/node-test-runner/archive/0.19.0.tar.gz"],
     )
 
-    native.register_toolchains("@com_github_edschouten_rules_elm//elm/toolchain:linux")
-    native.register_toolchains("@com_github_edschouten_rules_elm//elm/toolchain:mac")
+def elm_register_toolchains():
+    _fetch_compiler_archives(None)
+    native.register_toolchains(Label("//elm/toolchain:linux"))
+    native.register_toolchains(Label("//elm/toolchain:mac"))
 
 elm_toolchain_extension = module_extension(
-    implementation = elm_register_toolchains,
+    implementation = _fetch_compiler_archives,
     doc = "Downloads the required binaries for the elm rules",
 )

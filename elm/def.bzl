@@ -4,7 +4,7 @@ load(
     _create_elm_library_provider = "create_elm_library_provider",
 )
 
-_TOOLCHAIN = "@com_github_edschouten_rules_elm//elm:toolchain"
+_TOOLCHAIN = Label("//elm:toolchain")
 
 def _do_elm_make(
         ctx,
@@ -54,7 +54,7 @@ def _do_elm_make(
     toolchain_elm_files_list = toolchain.elm.files.to_list()
     ctx.actions.run(
         mnemonic = "Elm",
-        executable = "python",
+        executable = "python3", # TODO! Fetch this as dependency instead of relying on build environment
         arguments = [
             ctx.files._compile[0].path,
             compilation_mode,
@@ -69,38 +69,24 @@ def _do_elm_make(
         outputs = outputs,
     )
 
-def _elm_binary_impl(ctx):
+def _uglify_impl(ctx):
+    input_file = ctx.file.src
     js_file = ctx.actions.declare_file(ctx.attr.name + ".js")
     compilation_mode = ctx.var["COMPILATION_MODE"]
     if compilation_mode == "opt":
-        # Step 1: Compile the Elm code.
-        js1_file = ctx.actions.declare_file(ctx.attr.name + ".1.js")
-        _do_elm_make(
-            ctx,
-            compilation_mode,
-            ctx.files.main[0],
-            ctx.attr.deps,
-            [],
-            [],
-            [js1_file],
-            js1_file.path,
-            "",
-            "",
-        )
-
-        # Step 2: Compress the resulting Javascript.
+        # Step 1: Compress the resulting Javascript.
         js2_file = ctx.actions.declare_file(ctx.attr.name + ".2.js")
         ctx.actions.run(
             mnemonic = "UglifyJS",
             executable = ctx.executable.uglifyjs,
             arguments = [
-                js1_file.path,
+                input_file,
                 "--compress",
                 "pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe",
                 "--output",
                 js2_file.path,
             ],
-            inputs = [js1_file],
+            inputs = [input_file],
             outputs = [js2_file],
         )
 
@@ -118,22 +104,35 @@ def _elm_binary_impl(ctx):
             outputs = [js_file],
         )
     else:
-        # Don't attempt to compress the code after building.
-        _do_elm_make(
-            ctx,
-            compilation_mode,
-            ctx.files.main[0],
-            ctx.attr.deps,
-            [],
-            [],
-            [js_file],
-            js_file.path,
-            "",
-            "",
+        # Copy the file directly over with no changes
+        args = ctx.action.args()
+        args.add_all(input_file.short_path, js_file.short_path)
+        ctx.actions.run_shell(
+            outputs = [js_file],
+            inputs = [input_file],
+            arguments = args,
+            command = 'cp -f "$@"',
         )
     return [DefaultInfo(files = depset([js_file]))]
 
-elm_binary = rule(
+def _elm_binary_impl(ctx):
+    js_file = ctx.actions.declare_file(ctx.attr.name + ".js")
+    compilation_mode = ctx.var["COMPILATION_MODE"]
+    _do_elm_make(
+        ctx,
+        compilation_mode,
+        ctx.files.main[0],
+        ctx.attr.deps,
+        [],
+        [],
+        [js_file],
+        js_file.path,
+        "",
+        "",
+    )
+    return [DefaultInfo(files = depset([js_file]))]
+
+_elm_binary_plain = rule(
     attrs = {
         "deps": attr.label_list(providers = [_ElmLibrary]),
         "main": attr.label(
@@ -142,17 +141,38 @@ elm_binary = rule(
         ),
         "_compile": attr.label(
             allow_single_file = True,
-            default = Label("@com_github_edschouten_rules_elm//elm:compile.py"),
-        ),
-        "uglifyjs": attr.label(
-            cfg = "host",
-            default = Label("@npm//uglify-js/bin:uglifyjs"),
-            executable = True,
+            default = Label("//elm:compile.py"),
         ),
     },
     toolchains = [_TOOLCHAIN],
     implementation = _elm_binary_impl,
 )
+
+_uglify = rule(
+    implementation = _uglify_impl,
+    attrs = {
+        "src": attr.label(
+            doc = "The script to run uglify on",
+            allow_files = True,
+            mandatory = True,
+        ),
+        "uglifyjs": attr.label(
+            doc = "The binary for performing uglify, requires external deps",
+            cfg = "host",
+            default = Label("@npm//uglify-js/bin:uglifyjs"),
+            executable = True,
+        ),
+    },
+)
+
+def elm_binary(name, uglify=True, **kwargs):
+    if uglify:
+        temp_name = name + "_compiled"
+        _elm_binary_plain(name = temp_name, **kwargs)
+        _uglify(src = temp_name, **kwargs)
+    else:
+        _elm_binary_plain(name = name, **kwargs)
+        
 
 def _get_workspace_root(ctx):
     if not ctx.label.workspace_root:
@@ -297,12 +317,12 @@ elm_test = rule(
         ),
         "_compile": attr.label(
             allow_single_file = True,
-            default = Label("@com_github_edschouten_rules_elm//elm:compile.py"),
+            default = Label("//elm:compile.py"),
         ),
         "_generate_test_main": attr.label(
             allow_single_file = True,
             default = Label(
-                "@com_github_edschouten_rules_elm//elm:generate_test_main.py",
+                "//elm:generate_test_main.py",
             ),
         ),
         "_node_test_runner": attr.label(
@@ -313,7 +333,7 @@ elm_test = rule(
         ),
         "_run_test": attr.label(
             allow_single_file = True,
-            default = Label("@com_github_edschouten_rules_elm//elm:run_test.js"),
+            default = Label("//elm:run_test.js"),
         ),
     },
     test = True,

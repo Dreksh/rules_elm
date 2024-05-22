@@ -1,5 +1,7 @@
 module(name = "rules_elm", version = "1.0.0")
 
+bazel_dep(name = "platforms", version = "0.0.10")
+
 load_toolchain = use_extension("//elm:deps.bzl", "elm_toolchain_extension")
 use_repo(
     load_toolchain,
@@ -7,4 +9,5 @@ use_repo(
     "com_github_elm_compiler_mac",
     "com_github_rtfeldman_node_test_runner",
 )
-
+register_toolchains("//elm/toolchain:linux")
+register_toolchains("//elm/toolchain:mac")
