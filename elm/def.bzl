@@ -54,9 +54,8 @@ def _do_elm_make(
     toolchain_elm_files_list = toolchain.elm.files.to_list()
     ctx.actions.run(
         mnemonic = "Elm",
-        executable = "python3", # TODO! Fetch this as dependency instead of relying on build environment
+        executable = ctx.executable._compile,
         arguments = [
-            ctx.files._compile[0].path,
             compilation_mode,
             toolchain_elm_files_list[0].path,
             elm_json.path,
@@ -140,8 +139,9 @@ _elm_binary_plain = rule(
             mandatory = True,
         ),
         "_compile": attr.label(
-            allow_single_file = True,
-            default = Label("//elm:compile.py"),
+            cfg = "host",
+            executable = True,
+            default = Label("//elm:compile"),
         ),
     },
     toolchains = [_TOOLCHAIN],
@@ -266,9 +266,8 @@ def _elm_test_impl(ctx):
     main_file = ctx.actions.declare_file(main_filename)
     ctx.actions.run(
         mnemonic = "Elmi2Main",
-        executable = "python",
+        executable = ctx.executable._generate_test_main,
         arguments = [
-            ctx.files._generate_test_main[0].path,
             elmi_file.path,
             main_file.path,
         ],
@@ -316,14 +315,14 @@ elm_test = rule(
             default = Label("@nodejs//:node"),
         ),
         "_compile": attr.label(
-            allow_single_file = True,
-            default = Label("//elm:compile.py"),
+            cfg = "host",
+            executable = True,
+            default = Label("//elm:compile"),
         ),
         "_generate_test_main": attr.label(
-            allow_single_file = True,
-            default = Label(
-                "//elm:generate_test_main.py",
-            ),
+            cfg = "host",
+            executable = True,
+            default = Label("//elm:generate_test_main"),
         ),
         "_node_test_runner": attr.label(
             providers = [_ElmLibrary],

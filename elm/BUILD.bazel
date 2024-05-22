@@ -1,8 +1,20 @@
+load("@rules_python//python:defs.bzl","py_binary")
+
 exports_files([
-    "compile.py",
-    "generate_test_main.py",
     "run_test.js",
 ])
+
+py_binary(
+    name = "compile",
+    srcs = ["compile.py"],
+    python_version = "PY3",
+)
+
+py_binary(
+    name = "generate_test_main",
+    srcs = ["generate_test_main.py"],
+    python_version = "PY3",
+)
 
 toolchain_type(
     name = "toolchain",

@@ -1,6 +1,7 @@
 module(name = "rules_elm", version = "1.0.0")
 
 bazel_dep(name = "platforms", version = "0.0.10")
+bazel_dep(name = "rules_python", version = "0.32.2")
 
 load_toolchain = use_extension("//elm:deps.bzl", "elm_toolchain_extension")
 use_repo(

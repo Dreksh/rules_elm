@@ -10,8 +10,7 @@ def _elm_repository_impl(ctx):
     _patch(ctx)
 
     result = ctx.execute([
-        "python",
-        ctx.path(Label("@//repository:generate_build_files.py")),
+        ctx.executable._script.path,
         ctx.name,
     ])
     if result.return_code:
@@ -31,6 +30,13 @@ elm_repository = repository_rule(
         "patch_tool": attr.string(default = "patch"),
         "patch_args": attr.string_list(default = ["-p0"]),
         "patch_cmds": attr.string_list(default = []),
+
+        # Script for generating build files
+        "_script": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("//repository:generate_build_files"),
+        )
     },
     implementation = _elm_repository_impl,
 )
