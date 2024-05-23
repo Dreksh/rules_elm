@@ -1,0 +1,5 @@
+load("//tools/private:cli.bzl", "elm_init")
+
+elm_init(name = "init")
+
+
