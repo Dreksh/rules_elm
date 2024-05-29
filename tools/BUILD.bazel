@@ -1,5 +1,6 @@
 load("//tools/private:cli.bzl", "elm_init")
+load("//tools/private:json.bzl", "update_bazel_deps")
 
 elm_init(name = "init")
 
-
+update_bazel_deps(name = "update_bazel_deps")

@@ -1,9 +1,7 @@
 
 def _elm_init_impl(ctx):
     output_file = ctx.actions.declare_file(ctx.label.name)
-    executor = ctx.toolchains['//elm:toolchain'].elm[DefaultInfo]\
-        .files.to_list()[0]
-    print(executor.short_path)
+    executor = ctx.toolchains['//elm:toolchain'].elm.files.to_list()[0]
     ctx.actions.write(
         output = output_file,
         content = """

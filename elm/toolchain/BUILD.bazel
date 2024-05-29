@@ -1,5 +1,7 @@
 load("//elm/private:elm_toolchain.bzl", "elm_toolchain")
+load("//elm/private:elm_json_toolchain.bzl", "elm_json_toolchain")
 
+# For elm
 elm_toolchain(
     name = "linux",
     exec_compatible_with = [
@@ -7,13 +9,42 @@ elm_toolchain(
         "@platforms//cpu:x86_64",
     ],
 )
-
 elm_toolchain(
     name = "mac",
     exec_compatible_with = [
         "@platforms//os:osx",
         # "@platforms//cpu:x86_64", Let Rosetta handle it. 0.19.0 was built in 2018, pre-ARM macOS
     ],
+)
+
+# For elm-json
+elm_json_toolchain(
+    name = "json_darwin_arm",
+    exec_compatible_with = [
+        "@platforms//os:osx",
+        "@platforms//cpu:aarch64",
+    ]
+)
+elm_json_toolchain(
+    name = "json_darwin_x86",
+    exec_compatible_with = [
+        "@platforms//os:osx",
+        "@platforms//cpu:x86_64",
+    ]
+)
+elm_json_toolchain(
+    name = "json_linux_arm",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ]
+)
+elm_json_toolchain(
+    name = "json_linux_x86",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ]
 )
 
 filegroup(

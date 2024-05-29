@@ -8,7 +8,26 @@ use_repo(
     load_toolchain,
     "com_github_elm_compiler_linux",
     "com_github_elm_compiler_mac",
+    "com_github_elm_json_darwin_arm",
+    "com_github_elm_json_darwin_x86",
+    "com_github_elm_json_linux_arm",
+    "com_github_elm_json_linux_x86",
     "com_github_rtfeldman_node_test_runner",
 )
+# elm for all elm rules
 register_toolchains("//elm/toolchain:linux")
 register_toolchains("//elm/toolchain:mac")
+# elm-json for `bazel run //tools:update-bazel-deps`
+register_toolchains("//elm/toolchain:json_darwin_arm")
+register_toolchains("//elm/toolchain:json_darwin_x86")
+register_toolchains("//elm/toolchain:json_linux_arm")
+register_toolchains("//elm/toolchain:json_linux_x86")
+# python libraries for `bazel run //tools:update-bazel-deps`
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "pip",
+    python_version = "3.11",
+    requirements_lock = "//:requirements_lock.txt",
+    requirements_windows = "//:requirements_windows.txt",
+)
+use_repo(pip, "pip")

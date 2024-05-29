@@ -1,0 +1,12 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@pip//:requirements.bzl", "requirement")
+
+py_binary(
+    name = "update_bazel_deps",
+    srcs = ["update_bazel_deps.py"],
+    deps = [
+        requirement("requests"),
+    ],
+    python_version = "PY3",
+    visibility = ["//tools:__pkg__"],
+)
