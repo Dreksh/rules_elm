@@ -5,14 +5,17 @@ def _load_external_sources(module_ctx):
     all_deps = {}
     for mod in module_ctx.modules:
         for file in mod.tags.from_file:
-            deps_file = module_ctx.read(file.file.deps_index)
+            deps_file = module_ctx.read(file.deps_index)
             all_deps.update(json.decode(deps_file))
     for key in all_deps:
-        elm_repoitory(
+        value = all_deps[key]
+        elm_repository(
             name = key,
-            urls = [ all_deps['key']['url']],
-            strip_prefix = [ all_deps['key']['strip_prefix']],
-            sha256 = [ all_deps['key']['sha256']],
+            urls = [ value['url']],
+            strip_prefix = value['strip_prefix'],
+            sha256 = value['sha256'],
+            type = value['type'],
+            deps = value['deps'],
         )
 
 load_external_sources = module_extension(

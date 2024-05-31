@@ -1,13 +1,5 @@
-load("@rules_python//python:defs.bzl", "py_binary")
-
 filegroup(
     name = "all_files",
     srcs = glob(["*"]),
     visibility = ["//:__subpackages__"],
-)
-
-py_binary(
-    name = "generate_build_files",
-    srcs = ["generate_build_files.py"],
-    python_version = "PY3",
 )

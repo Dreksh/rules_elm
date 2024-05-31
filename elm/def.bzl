@@ -120,7 +120,7 @@ def _elm_binary_impl(ctx):
     _do_elm_make(
         ctx,
         compilation_mode,
-        ctx.files.main[0],
+        ctx.file.main,
         ctx.attr.deps,
         [],
         [],
@@ -135,7 +135,7 @@ _elm_binary_plain = rule(
     attrs = {
         "deps": attr.label_list(providers = [_ElmLibrary]),
         "main": attr.label(
-            allow_files = True,
+            allow_single_file = True,
             mandatory = True,
         ),
         "_compile": attr.label(
@@ -169,7 +169,7 @@ def elm_binary(name, uglify=True, **kwargs):
     if uglify:
         temp_name = name + "_compiled"
         _elm_binary_plain(name = temp_name, **kwargs)
-        _uglify(src = temp_name, **kwargs)
+        _uglify(name = name, src = temp_name, **kwargs)
     else:
         _elm_binary_plain(name = name, **kwargs)
         
@@ -182,15 +182,31 @@ def _get_workspace_root(ctx):
 def _paths_join(*args):
     return "/".join([path for path in args if path])
 
+def _dir(path):
+    slash_index = path.rfind("/")
+    if slash_index == -1:
+        return path
+    return path[:slash_index]
+
 def _elm_library_impl(ctx):
-    workspace_root = _get_workspace_root(ctx)
     source_directories_set = {}
-    for src in ctx.files.srcs:
-        source_directories_set.setdefault(_paths_join(
-            workspace_root,
-            src.root.path,  # non-empty for generated files.
-            ctx.attr.strip_import_prefix,
-        ))
+    if ctx.label.workspace_root:
+        for src in ctx.files.srcs:
+            source_directories_set.setdefault(_paths_join(
+                ctx.label.workspace_root,
+                src.root.path,  # non-empty for generated files.
+                ctx.attr.strip_import_prefix,
+            ))
+    else:
+        # src to find blah
+        for src in ctx.files.srcs:
+            if src.root.path:
+                source_directories_set.setdefault(_paths_join(
+                    src.root.path,
+                    ctx.attr.strip_import_prefix,
+                ))
+            else:
+                source_directories_set.setdefault(_dir(src.path))
     source_directories = source_directories_set.keys()
     return [
         _create_elm_library_provider(
