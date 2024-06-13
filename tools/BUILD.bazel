@@ -1,6 +1,22 @@
-load("//tools/private:cli.bzl", "elm_init")
+load("//tools/private:cli.bzl", "elm_cmd")
 load("//tools/private:json.bzl", "update_bazel_deps")
 
-elm_init(name = "init")
+# Follow commands contain the path from root of the repo as the first parameter
+# subsequent parameters will be placed at the end of the command
+elm_cmd(
+    name = "init-app",
+    cmd = "init",
+    postprocess = "touch BUILD.bazel",
+)
 
-update_bazel_deps(name = "update_bazel_deps")
+elm_cmd(
+    name = "install-deps",
+    cmd = "install",
+)
+
+elm_cmd(
+    name = "update-deps",
+    cmd = "update",
+)
+
+update_bazel_deps(name = "update-bazel-deps")
