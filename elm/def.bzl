@@ -30,6 +30,7 @@ def _do_elm_make(
         for name, version in dep[_ElmLibrary].dependencies.to_list():
             dependencies[name] = version
     elm_json = ctx.actions.declare_file(ctx.attr.name + "-elm.json" + suffix)
+    elm_home = ctx.actions.declare_directory(ctx.attr.name + "-elm-home")
     ctx.actions.write(
         elm_json,
         """{
@@ -62,10 +63,11 @@ def _do_elm_make(
             main.path,
             js_path,
             elmi_path,
+            elm_home.path,
         ] + package_directories.to_list(),
         inputs = toolchain_elm_files_list +
                  ctx.files._compile + [elm_json, main] + source_files.to_list(),
-        outputs = outputs,
+        outputs = outputs + [elm_home], # Also include our intermediate files
     )
 
 def _uglify_impl(ctx):
